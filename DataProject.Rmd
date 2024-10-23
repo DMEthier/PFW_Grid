@@ -1,0 +1,79 @@
+---
+title: "DataProject"
+author: "Danielle Ethier"
+date: '2022-05-13'
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Load library and set directories
+
+```{r library}
+
+require(tidyverse)
+require(reshape)
+require(data.table)
+require(tibble)
+require(raster)
+require(sp)
+require(rgeos)
+require(rgdal)
+require(arcgisbinding)
+
+out.dir <- paste("Output/")
+dat.dir <- paste("Data/")
+```
+
+Read in sample PFW data for testing projection. 
+
+```{r PFWdata}
+
+dat<-read.csv("Data/PFW_Canada_2020-2021.csv")
+
+#select required columns and distrinct locations 
+dat<-dat %>% select(loc_id, latitude, longitude, month, day, year) %>% distinct()
+
+#make lat and long spatial data
+
+pts <- SpatialPoints(coords = cbind(dat$longitude, dat$latitude))
+
+# Project to the appropriate datum
+# Geographic Coordinate System:	GCS_North_American_1983
+# Datum: 	D_North_American_1983
+proj4string(pts) <- CRS("+proj=longlat +datum=WGS84 +no_defs") 
+
+st_crs(pts)
+
+```
+
+Read in the projected CBC grid for testing projection
+https://maps.princeton.edu/catalog/stanford-jb757gw0658
+
+```{r CBCgrid}
+
+
+grid_cbc<-readOGR(dsn="Data", layer="cbc_na_grid")
+plot(grid_cbc)
+grid_cbc@proj4string@projargs 
+#"+proj=aea +lat_0=40 +lon_0=-96 +lat_1=20 +lat_2=60 +x_0=0 +y_0=0 +datum=NAD83 +units=m +no_defs" # epsg 102005
+st_crs(grid_cbc)
+
+grid_proj <- spTransform(grid_cbc, CRS(proj4string(pts)))
+
+
+
+
+#ployline
+grid <- readOGR(dsn="Data", layer="ne_110m_graticules_1") 
+grid@proj4string@projargs 
+
+grid@proj4string@projargs 
+# "+proj=longlat +datum=WGS84 +no_defs"
+
+```
+

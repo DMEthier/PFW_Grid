@@ -1,0 +1,54 @@
+---
+title: "DataCompile"
+author: "Danielle Ethier"
+date: '2022-06-05'
+output: html_document
+---
+
+Load library and set directories
+
+```{r library}
+
+require(tidyverse)
+
+out.dir <- paste("Output/")
+dat.dir <- paste("Data/")
+```
+
+Load data
+
+```{r data}
+
+Grid<-read.csv("Data/CBCGrid.csv")
+Grid$ID<-Grid$id
+Crop<-read.csv("Data/crop.csv")
+Forest<-read.csv("Data/forest.csv")
+Grass<-read.csv("Data/grass.csv")
+Shrub<-read.csv("Data/shrub.csv")
+Urban<-read.csv("Data/urban.csv")
+Temp<-read.csv("Data/TempAnnual.csv")
+Precip<-read.csv("Data/PrecipAnnual.csv")
+Elev<-read.csv("Data/Elevation.csv")
+Water<-read.csv("Data/water.csv")
+zone<-read.csv("Data/Zone2.csv")
+
+#Merge data to grid ID
+
+dat<-left_join(Grid, Crop, by="ID")
+dat<-left_join(dat, Forest, by="ID")
+dat<-left_join(dat, Grass, by="ID")
+dat<-left_join(dat, Shrub, by="ID")
+dat<-left_join(dat, Urban, by="ID")
+dat<-left_join(dat, Water, by="ID")
+dat<-left_join(dat, Temp, by="ID")
+dat<-left_join(dat, Precip, by="ID")
+dat<-left_join(dat, Elev, by="ID")
+dat<-left_join(dat, zone, by="ID")
+
+dat<-dat %>% select(ID, TotalCount, Crop, Forest, Grass, Shrub, Urban, Water, Elevation_Mean, Temp_Mean, Precip_Mean)
+
+dat<-dat %>% mutate(crop_per = (Crop/TotalCount)*100, forest_per = (Forest/TotalCount)*100, grass_per=(Grass/TotalCount)*100, shrub_per=(Shrub/TotalCount)*100, urban_per=(Urban/TotalCount)*100, water_per=(Water/TotalCount)*100)
+
+write.csv(dat, "Covariates_Yiran_28Jun2022.csv")
+
+```
